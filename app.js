@@ -1,4 +1,4 @@
-// 初始化地图，以北京为中心
+// 初始化地图
 var map = L.map('map').setView([39.9042, 116.4074], 11);
 
 // 添加地图底图
@@ -7,119 +7,170 @@ L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
     maxZoom: 18
 }).addTo(map);
 
-// 添加一个默认标记
-var defaultMarker = L.marker([39.9042, 116.4074])
-    .addTo(map)
-    .bindPopup(`
-        <div style="text-align: center;">
-            <h3 style="color: #2c3e50; margin: 0;">🏙️ 北京中心</h3>
-            <hr style="margin: 8px 0;">
-            <p>欢迎使用城市公园地图系统！</p>
-            <p>点击下方的绿色区域查看公园详细信息</p>
-        </div>
-    `)
-    .openPopup();
-
-// 加载并显示GeoJSON数据
-fetch('data/parks.geojson')
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('网络响应不正常');
-        }
-        return response.json();
-    })
-    .then(geojsonData => {
-        // 创建GeoJSON图层并自定义样式
-        var parksLayer = L.geoJSON(geojsonData, {
-            style: {
-                fillColor: '#27ae60',
-                color: '#2ecc71',
-                weight: 3,
-                opacity: 0.8,
-                fillOpacity: 0.4
-            },
-            onEachFeature: function(feature, layer) {
-                // 为每个公园要素创建弹出信息
-                var properties = feature.properties;
-                var popupContent = `
-                    <div style="min-width: 200px;">
-                        <h3 style="color: #2c3e50; margin: 0 0 10px 0; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
-                            🏞️ ${properties.name}
-                        </h3>
-                        <div style="margin: 10px 0;">
-                            <p><strong>📐 面积:</strong> ${properties.area_hectare} 公顷</p>
-                            <p><strong>🎯 类型:</strong> ${properties.type}</p>
-                            <p><strong>📅 建立年份:</strong> ${properties.established}年</p>
-                        </div>
-                        <div style="margin: 10px 0;">
-                            <strong>🏗️ 设施:</strong><br>
-                `;
-                
-                // 添加设施列表
-                if (properties.facilities && properties.facilities.length > 0) {
-                    properties.facilities.forEach(facility => {
-                        popupContent += `• ${facility}<br>`;
-                    });
-                } else {
-                    popupContent += `暂无设施信息<br>`;
-                }
-                
-                popupContent += `
-                        </div>
-                        <div style="margin-top: 10px; padding: 8px; background: #e8f4fd; border-radius: 5px;">
-                            <small>点击地图其他位置关闭弹窗</small>
-                        </div>
-                    </div>
-                `;
-                
-                layer.bindPopup(popupContent);
-            }
-        }).addTo(map);
-
-        // 调整地图视图以包含所有公园
-        if (parksLayer.getBounds().isValid()) {
-            map.fitBounds(parksLayer.getBounds().pad(0.1));
-        }
-        
-        console.log('公园数据加载成功！', geojsonData);
-    })
-    .catch(error => {
-        console.error('加载公园数据失败:', error);
-        // 如果加载失败，显示错误信息
-        L.marker([39.9042, 116.4074])
-            .addTo(map)
-            .bindPopup('<div style="color: red;">❌ 加载公园数据失败，请检查网络连接</div>')
-            .openPopup();
-    });
-
-// 添加一些示例圆形标记作为补充
-var additionalParks = [
-    { name: "朝阳公园", latlng: [39.933, 116.480], area: "288公顷", type: "城市公园" },
-    { name: "玉渊潭公园", latlng: [39.912, 116.317], area: "137公顷", type: "自然公园" }
-];
-
-additionalParks.forEach(function(park) {
-    L.circle(park.latlng, {
-        color: '#e74c3c',
-        fillColor: '#eaa79b',
-        fillOpacity: 0.3,
-        radius: 400
-    }).addTo(map).bindPopup(`
-        <div style="text-align: center;">
-            <h4 style="margin: 0; color: #c0392b;">${park.name}</h4>
-            <p><strong>面积:</strong> ${park.area}</p>
-            <p><strong>类型:</strong> ${park.type}</p>
-        </div>
-    `);
-});
-
-// 添加比例尺控件
+// 添加比例尺
 L.control.scale({ imperial: false }).addTo(map);
 
-// 添加地图事件监听
-map.on('click', function(e) {
-    console.log('地图点击位置 - 纬度:', e.latlng.lat, '经度:', e.latlng.lng);
+// 存储公园数据的全局变量
+var allParks = [];
+var parkMarkers = [];
+
+// 从GitHub加载公园数据
+async function loadParksData() {
+    try {
+        console.log('开始加载公园数据...');
+        
+        // 使用Raw GitHub URL直接访问JSON文件
+        const response = await fetch('https://raw.githubusercontent.com/shanhai122/my-gis-map/main/data.json');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('数据加载成功:', data);
+        
+        allParks = data.parks || [];
+        displayParksOnMap();
+        createParkList();
+        
+    } catch (error) {
+        console.error('加载数据失败:', error);
+        // 显示错误信息
+        L.marker([39.9042, 116.4074])
+            .addTo(map)
+            .bindPopup(`
+                <div style="color: red; text-align: center;">
+                    <h3>❌ 数据加载失败</h3>
+                    <p>${error.message}</p>
+                    <small>请检查网络连接或稍后重试</small>
+                </div>
+            `)
+            .openPopup();
+    }
+}
+
+// 在地图上显示公园
+function displayParksOnMap() {
+    // 清除之前的标记
+    parkMarkers.forEach(marker => map.removeLayer(marker));
+    parkMarkers = [];
+    
+    allParks.forEach(park => {
+        // 为每个公园创建圆形标记
+        const marker = L.circle(park.location, {
+            color: '#27ae60',
+            fillColor: '#2ecc71',
+            fillOpacity: 0.3,
+            radius: 600  // 固定半径600米
+        }).addTo(map);
+        
+        // 创建弹出窗口内容
+        const popupContent = `
+            <div style="min-width: 250px;">
+                <h3 style="color: #2c3e50; margin: 0 0 10px 0; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+                    🏞️ ${park.name}
+                </h3>
+                <div style="margin: 10px 0;">
+                    <p><strong>📐 面积:</strong> ${park.area_hectare} 公顷</p>
+                    <p><strong>🎯 类型:</strong> ${park.type}</p>
+                    <p><strong>📅 建立年份:</strong> ${park.established}年</p>
+                    <p><strong>👥 日均游客:</strong> ${park.visitors_per_day}人</p>
+                </div>
+                <div style="margin: 10px 0;">
+                    <strong>🏗️ 设施:</strong><br>
+                    ${park.facilities.map(facility => `• ${facility}`).join('<br>')}
+                </div>
+                <div style="margin-top: 10px; padding: 8px; background: #e8f4fd; border-radius: 5px; font-size: 12px;">
+                    ${park.description}
+                </div>
+            </div>
+        `;
+        
+        marker.bindPopup(popupContent);
+        parkMarkers.push(marker);
+        
+        // 点击标记时居中显示
+        marker.on('click', function() {
+            map.setView(park.location, 14);
+        });
+    });
+    
+    // 调整地图视图以包含所有公园
+    if (parkMarkers.length > 0) {
+        const group = new L.featureGroup(parkMarkers);
+        map.fitBounds(group.getBounds().pad(0.1));
+    }
+}
+
+// 创建公园列表侧边栏
+function createParkList() {
+    // 创建列表容器
+    const listContainer = L.control({ position: 'topright' });
+    
+    listContainer.onAdd = function(map) {
+        const div = L.DomUtil.create('div', 'park-list');
+        div.innerHTML = `
+            <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); max-width: 300px; max-height: 400px; overflow-y: auto;">
+                <h4 style="margin: 0 0 15px 0; color: #2c3e50;">🏞️ 公园列表 (${allParks.length})</h4>
+                <div id="parks-list">
+                    ${allParks.map(park => `
+                        <div style="padding: 10px; margin: 5px 0; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #27ae60; cursor: pointer;" 
+                             onclick="focusOnPark('${park.id}')">
+                            <strong>${park.name}</strong><br>
+                            <small>${park.type} • ${park.area_hectare}公顷</small>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
+                    点击公园名称或地图上的绿色区域查看详情
+                </div>
+            </div>
+        `;
+        return div;
+    };
+    
+    listContainer.addTo(map);
+}
+
+// 聚焦到指定公园
+function focusOnPark(parkId) {
+    const park = allParks.find(p => p.id === parkId);
+    if (park) {
+        map.setView(park.location, 15);
+        // 打开该公园的弹出窗口
+        parkMarkers.forEach(marker => {
+            if (marker.getLatLng().equals(park.location)) {
+                marker.openPopup();
+            }
+        });
+    }
+}
+
+// 搜索公园功能
+function searchParks(query) {
+    const filteredParks = allParks.filter(park => 
+        park.name.toLowerCase().includes(query.toLowerCase()) ||
+        park.type.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    // 更新地图显示
+    parkMarkers.forEach(marker => {
+        const shouldShow = filteredParks.some(park => 
+            marker.getLatLng().equals(park.location)
+        );
+        if (shouldShow) {
+            map.addLayer(marker);
+        } else {
+            map.removeLayer(marker);
+        }
+    });
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('页面加载完成，开始初始化地图...');
+    loadParksData();
 });
 
-// 页面加载完成后的提示
-console.log('🌍 GIS地图应用加载完成！');
+// 添加控制台提示
+console.log('🗺️ GIS公园地图系统已加载');
