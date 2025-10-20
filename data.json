@@ -1,0 +1,40 @@
+{
+  "parks": [
+    {
+      "id": "1",
+      "name": "奥林匹克公园",
+      "type": "综合公园",
+      "area_hectare": 680,
+      "established": 2008,
+      "location": [39.910, 116.400],
+      "facilities": ["健身器材", "篮球场", "步行道", "儿童游乐区"],
+      "description": "北京最大的城市公园，曾举办2008年奥运会",
+      "visitors_per_day": 5000
+    },
+    {
+      "id": "2", 
+      "name": "颐和园",
+      "type": "古典园林",
+      "area_hectare": 297,
+      "established": 1750,
+      "location": [39.900, 116.270],
+      "facilities": ["湖泊", "古建筑", "游船", "文物展览"],
+      "description": "中国清朝时期皇家园林，世界文化遗产",
+      "visitors_per_day": 8000
+    },
+    {
+      "id": "3",
+      "name": "朝阳公园",
+      "type": "城市公园", 
+      "area_hectare": 288,
+      "established": 1984,
+      "location": [39.933, 116.480],
+      "facilities": ["运动场", "湖泊", "游乐场", "咖啡厅"],
+      "description": "北京市四环以内最大的城市公园",
+      "visitors_per_day": 3000
+    }
+  ],
+  "last_updated": "2024-01-20",
+  "total_parks": 3,
+  "total_area_hectare": 1265
+}
