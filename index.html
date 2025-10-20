@@ -1,17 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>我的地图</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的城市公园地图</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        #map { height: 500px; width: 100%; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header .description {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        .info-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-top: 3px solid #3498db;
+        }
+        .info-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .instructions {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .instruction-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin: 5px;
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+        }
+        .instruction-item i {
+            font-size: 1.5em;
+            margin-bottom: 8px;
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <h1>我的GIS地图</h1>
-    <div id="map"></div>
-    
+    <div class="container">
+        <div class="header">
+            <h1>🌳 城市公园分布地图</h1>
+            <p class="description">基于Leaflet的交互式GIS应用演示</p>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div class="info-panel">
+            <h3>🗺️ 使用说明</h3>
+            <div class="instructions">
+                <div class="instruction-item">
+                    <div>📍</div>
+                    <strong>查看位置</strong>
+                    <p>点击地图上的标记点查看详细信息</p>
+                </div>
+                <div class="instruction-item">
+                    <div>🟢</div>
+                    <strong>公园区域</strong>
+                    <p>绿色圆形区域代表各个公园范围</p>
+                </div>
+                <div class="instruction-item">
+                    <div>📱</div>
+                    <strong>交互操作</strong>
+                    <p>使用鼠标滚轮缩放，拖拽移动地图</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Leaflet库 -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- 引入我们的JavaScript代码 -->
     <script src="app.js"></script>
 </body>
 </html>
