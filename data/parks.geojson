@@ -1,0 +1,45 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "奥林匹克公园",
+        "area_hectare": 680,
+        "type": "综合公园",
+        "established": 2008,
+        "facilities": ["健身器材", "篮球场", "步行道", "儿童游乐区"]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [116.390, 40.010],
+          [116.410, 40.010],
+          [116.410, 39.990],
+          [116.390, 39.990],
+          [116.390, 40.010]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "颐和园",
+        "area_hectare": 297,
+        "type": "古典园林",
+        "established": 1750,
+        "facilities": ["湖泊", "古建筑", "游船", "文物展览"]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [116.270, 40.005],
+          [116.285, 40.005],
+          [116.285, 39.995],
+          [116.270, 39.995],
+          [116.270, 40.005]
+        ]]
+      }
+    }
+  ]
+}
